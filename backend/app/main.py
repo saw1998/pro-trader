@@ -4,6 +4,7 @@ from app.auth.jwt.auth_backend import auth_backend
 from app.auth.jwt.auth_user import auth_users
 from app.schema.user_schema import UserCreate, UserRead, UserUpdate
 from app.db.base_db import Base, db_async_engine
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app : FastAPI):
@@ -16,6 +17,15 @@ async def lifespan(app : FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# cors
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Routers
 
