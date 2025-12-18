@@ -1,7 +1,29 @@
-from fastapi import status
+from fastapi import HTTPException, status
 from typing import Any, Dict, Optional
 
 
+class AppException(HTTPException):
+    def __init__(self, status_code : int, details : str, headers: Optional[dict[str, Any]] = None):
+        super().__init__(status_code=status_code, detail=details, headers=headers)
+
+class NotFoundException(AppException):
+    def __init__(self, resource: str = "Resource"):
+        super().__init__(status_code=status.HTTP_404_NOT_FOUND, details=f"{resource} not found")
+
+class UnauthorizedException(AppException):
+    def __init__(self, detail: str = "Unauthorized"):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, details=detail)
+
+class BadRequestException(AppException):
+    def __init__(self, detail: str = "Bad Request"):
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, details=detail)
+
+class ConflictException(AppException):
+    def __init__(self, detail: str = "Conflict"):
+        super().__init__(status_code=status.HTTP_409_CONFLICT, details=detail)
+
+
+# ================================= Additional exception ===============================================
 class BaseAppException(Exception):
     '''Base exception for application'''
 

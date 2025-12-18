@@ -1,5 +1,7 @@
+from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import UUID, DateTime, ForeignKey, Numeric, String, Enum as SQLEnum, Index
+from typing import Optional
+from sqlalchemy import UUID, DateTime, ForeignKey, Numeric, String, Enum as SQLEnum, Index, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from enum import Enum
 import uuid
@@ -19,15 +21,18 @@ class Trade(Base, TimestampMixin):
     id : Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id : Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     position_id : Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("positions.id", ondelete="SET NULL"), nullable=True)
-    symbol : Mapped[str] = mapped_column(String(20), nullable=False)
+    symbol : Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     side : Mapped[TradeSide] = mapped_column(SQLEnum(TradeSide), nullable=False)
-    quantity : Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
-    price : Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
+    quantity : Mapped[float] = mapped_column(Numeric(20, 8), nullable=False)
+    price : Mapped[float] = mapped_column(Numeric(20, 8), nullable=False)
     total_value : Mapped[Decimal] = mapped_column(Numeric(20, 8), nullable=False)
     fee : Mapped[Decimal] = mapped_column(Numeric(20,8),default=0)
     realized_pnl : Mapped[Decimal] = mapped_column(Numeric(20, 8), default=0)
+    executed_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
+    user: Mapped["User"] = relationship(back_populates="trades")
+    position : Mapped[Optional["Position"]] = relationship(back_populates="trades")
 
 
     __trade_args__ = (

@@ -1,7 +1,7 @@
 import json
 import redis.asyncio as redis
 from typing import Dict, List, Optional, Set
-from app.config import settings
+from app.core.config import settings
 
 
 class RedisClient:
@@ -177,6 +177,92 @@ class RedisClient:
             for symbol, value in zip(symbols, results)
         }
 
-# singleton instance
-redis_client = RedisClient()
+    # user session operations
+    async def create_session(self, session_id : str, user_data : dict) -> None:
+        key = f"session:{session_id}"
+        await self.client.setex(key, settings.SESSION_EXPIRE_SECONDS, json.dumps(user_data))
     
+    async def get_session(self, session_id: str) -> Optional[dict]:
+        key = f"session:{session_id}"
+        data = await self.client.get(key)
+        if data:
+            await self.client.expire(key, settings.SESSION_EXPIRE_SECONDS) #sliding expiration
+            return json.loads(data)
+        return None
+    
+    async def delete_session(self, session_id: str) -> None:
+        await self.client.delete(f"session:{session_id}")
+
+    async def delete_user_sessions(self, user_id: str) -> None:
+        pattern = f"session:*"
+        async for key in self.client.scan_iter(match=pattern):
+            data = await self.get_session(key)
+            if data:
+                if data.get("user_id") == user_id:
+                    await self.delete_session(key)
+    
+    # User-Symbol subscription tracking
+    async def subscribe_user_to_symbol(self, user_id: str, symbol: str) -> None:
+        pipe = self.client.pipeline()
+        pipe.sadd(f"user_symbols:{user_id}", symbol)
+        pipe.sadd(f"symbol_subscribers:{symbol}", user_id)
+        await pipe.execute()
+
+    async def unsubscribe_user_from_symbol(self, user_id: str, symbol:str)->None:
+        pipe = self.client.pipeline()
+        pipe.srem("user_symbols:{user_id}", symbol)
+        pipe.srem("symbol_subscribers:{symbol}", user_id)
+        await pipe.execute()
+
+    async def get_symbol_subscribers(self, symbol:str) -> set[str]:
+        return await self.client.smembers(f"symbol_subscribers:{symbol}")
+
+    async def get_user_symbols(self, user_id: str) -> set[str]:
+        return await self.client.smembers(f"user_symbols:{user_id}")
+
+    # PnL cache
+    async def cache_user_pnl(self, user_id: str, pnl_data: dict) -> None:
+        await self.client.setex(f"pnl:{user_id}", settings.PNL_CACHE_TTL_SECONDS, json.dumps(pnl_data))
+    
+    async def get_user_pnl(self, user_id:str) -> Optional[dict]:
+        data = await self.client.get("pnl:{user_id}")
+        if data:
+            return json.loads(data)
+        return None
+    
+    async def invalidate_user_pnl(self, user_id: str) -> None:
+        await self.client.delete(f"pnl:{user_id}")
+
+    
+    
+
+'''
+In a single Python process:
+✅ Effectively a singleton
+
+When this breaks (important)
+1️⃣ Multiple processes (VERY common)
+
+Each process has its own memory space.
+
+Examples:
+
+uvicorn --workers 4
+
+gunicorn
+
+Celery workers
+
+multiprocessing
+
+Kubernetes pods
+
+➡️ Each process creates its own RedisClient()
+
+This is usually fine for Redis (clients are lightweight), but it’s not a true global singleton.
+'''
+
+redis_client = RedisClient()
+
+def get_redis() -> RedisClient:
+    return redis_client

@@ -35,6 +35,8 @@ class UserRepository(BaseRepository[User]):
         user = User(email=email, username = username, password_hash = password_hash)
         return await self.create(user)
 
+    # ================ Extras ================
+    
     async def update_password(self, user_id : UUID, password_hash : str) -> bool:
         user = await self.get_by_id(user_id)
         if user:

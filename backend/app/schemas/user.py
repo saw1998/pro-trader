@@ -5,22 +5,25 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
 
-class UserBase(BaseModel):
-    '''base user schema'''
-    
-    email : EmailStr
-    username : str
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str
+    password: str
 
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     '''user response schema'''
 
     id : UUID
+    email : EmailStr
+    username : str
     is_active : bool
     is_verified : bool
     created_at : datetime
 
     class Config:
         from_attributes = True
+
+#  ============= Extras ======================
 
 class UserUpdate(BaseModel):
     '''user update schema'''

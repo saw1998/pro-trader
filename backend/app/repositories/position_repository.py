@@ -1,8 +1,10 @@
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-from sqlalchemy import select
+from zoneinfo import ZoneInfo
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.positions import Position, PositionStatus
+from app.models.positions import Position, PositionStatus, PositionType
 from app.repositories.base import BaseRepository
 
 
@@ -31,4 +33,71 @@ class PositionRepository(BaseRepository[Position]):
         result = await self.session.execute(query)
         return list(result.scalars().all())
     
-    async 
+    async def get_user_open_positions(self, user_id : UUID) -> list[Position]:
+        return await self.get_user_positions(user_id=user_id, status=PositionStatus.OPEN)
+
+    async def get_user_position(self, user_id : UUID, position_id : UUID) -> Optional[Position]:
+        result = await self.session.execute(
+            select(Position).where(and_(Position.id == position_id, Position.user_id == user_id))
+        )
+        return result.scalar_one_or_none()
+
+    async def get_open_position_by_symbol(self, user_id:UUID, symbol:str) -> Optional[Position]:
+        result = await self.session.execute(
+            select(Position).where(
+                and_(
+                    Position.user_id == user_id,
+                    Position.symbol == symbol,
+                    Position.status == PositionStatus.OPEN
+                )
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def create_position(self, user_id:UUID, symbol:str, quantity:float, entry_price : float, position_type: PositionType) -> Position:
+        position = Position(
+            user_id=user_id,
+            symbol = symbol,
+            quantity = quantity,
+            entry_price = entry_price,
+            position_type = position_type,
+            status = PositionStatus.OPEN
+        )
+        return await self.create(position)
+
+    async def close_position(self, position_id:UUID, exit_price : float, realized_pnl: float) -> Optional[Position]:
+        return await self.update(
+            entity=Position(
+                id = position_id,
+                exit_price = exit_price,
+                realized_pnl = realized_pnl,
+                closed_at = datetime.now(tz=ZoneInfo("UTC"))
+            )
+        )
+    
+    async def get_positions_by_symbol(self, symbol: str) -> list[Position]:
+        result = await self.session.execute(
+            select(Position).where(
+                and_(
+                    Position.symbol == symbol.upper(),
+                    Position.status == PositionStatus.OPEN
+                )
+            )
+        )
+        return list(result.scalars().all())
+
+    async def get_user_symbols(self, user_id : UUID) -> list[str]:
+        result = await self.session.execute(
+            select(Position.symbol).where(
+                and_(
+                    Position.user_id == user_id,
+                    Position.status == PositionStatus.OPEN
+                )
+            ).distinct()
+        )
+        return [row[0] for row in result.fetchall()]
+    
+
+
+
+    

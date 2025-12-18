@@ -34,6 +34,14 @@ class LoginRequest(BaseModel):
     email : EmailStr
     password : str
 
+class LoginResponse(BaseModel):
+    session_id : str
+    user_id : str
+    username : str
+    message : str = "Login successfull"
+
+# ============== Extras =====================
+
 class AuthResponse(BaseModel):
     '''Authentication response'''
 

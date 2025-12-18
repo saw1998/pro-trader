@@ -53,7 +53,7 @@ class Settings(BaseSettings):
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
     
     # Session
-    SESSION_TTL_SECONDS : int = 1800 #30 min
+    SESSION_EXPIRE_SECONDS : int = 1800 #30 min
     SESSION_REFRESH_THRESHOLD : int = 300 #refresh if less than 5 min left
 
     # Binance
