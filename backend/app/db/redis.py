@@ -208,10 +208,28 @@ class RedisClient:
         pipe.sadd(f"symbol_subscribers:{symbol}", user_id)
         await pipe.execute()
 
-    async def unsubscribe_user_from_symbol(self, user_id: str, symbol:str)->None:
+    async def unsubscribe_user_from_symbol(self, user_id: str, symbol: str) -> None:
+        """
+        Remove user's subscription to a specific trading symbol.
+        
+        This method maintains the bidirectional mapping between users and symbols
+        by removing entries from both the user->symbols and symbol->users mappings.
+        Uses Redis pipeline for atomic execution of both operations.
+        
+        Args:
+            user_id: Unique identifier for the user
+            symbol: Trading pair symbol to unsubscribe from
+            
+        Redis Operations:
+            1. Remove symbol from user's subscription set
+            2. Remove user from symbol's subscriber set
+            
+        Note: Uses pipeline to ensure both operations succeed or fail together
+        """
         pipe = self.client.pipeline()
-        pipe.srem("user_symbols:{user_id}", symbol)
-        pipe.srem("symbol_subscribers:{symbol}", user_id)
+        # FIXED: Added f-string formatting for proper key interpolation
+        pipe.srem(f"user_symbols:{user_id}", symbol)
+        pipe.srem(f"symbol_subscribers:{symbol}", user_id)
         await pipe.execute()
 
     async def get_symbol_subscribers(self, symbol:str) -> set[str]:
@@ -224,8 +242,26 @@ class RedisClient:
     async def cache_user_pnl(self, user_id: str, pnl_data: dict) -> None:
         await self.client.setex(f"pnl:{user_id}", settings.PNL_CACHE_TTL_SECONDS, json.dumps(pnl_data))
     
-    async def get_user_pnl(self, user_id:str) -> Optional[dict]:
-        data = await self.client.get("pnl:{user_id}")
+    async def get_user_pnl(self, user_id: str) -> Optional[dict]:
+        """
+        Retrieve cached P&L (Profit & Loss) data for a specific user.
+        
+        This method fetches pre-calculated portfolio P&L data from Redis cache.
+        The cache helps avoid expensive real-time calculations on every request.
+        
+        Args:
+            user_id: Unique identifier for the user
+            
+        Returns:
+            Dictionary containing P&L data if cached, None if cache miss
+            
+        Cache Structure:
+            Key: "pnl:{user_id}"
+            Value: JSON object with portfolio positions, total P&L, percentages
+            TTL: Configured via PNL_CACHE_TTL_SECONDS (typically 5 seconds)
+        """
+        # FIXED: Corrected f-string formatting - was missing 'f' prefix
+        data = await self.client.get(f"pnl:{user_id}")
         if data:
             return json.loads(data)
         return None

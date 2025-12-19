@@ -65,15 +65,40 @@ class PositionRepository(BaseRepository[Position]):
         )
         return await self.create(position)
 
-    async def close_position(self, position_id:UUID, exit_price : float, realized_pnl: float) -> Optional[Position]:
-        return await self.update(
-            entity=Position(
-                id = position_id,
-                exit_price = exit_price,
-                realized_pnl = realized_pnl,
-                closed_at = datetime.now(tz=ZoneInfo("UTC"))
-            )
-        )
+    async def close_position(self, position_id: UUID, exit_price: float, realized_pnl: float) -> Optional[Position]:
+        """
+        Close an open position by updating its status and recording exit details.
+        
+        This method updates an existing position record with closing information:
+        - Sets status to CLOSED
+        - Records the exit price
+        - Calculates and stores realized P&L
+        - Timestamps the closing event
+        
+        Args:
+            position_id: Unique identifier of the position to close
+            exit_price: Price at which the position was closed
+            realized_pnl: Calculated profit or loss from the position
+            
+        Returns:
+            Updated Position object if found, None if position doesn't exist
+            
+        Note: This method fetches the existing position first, then updates it
+        rather than creating a new Position object (which would cause issues)
+        """
+        # FIXED: Fetch existing position first, then update its fields
+        position = await self.get_by_id(position_id)
+        if not position:
+            return None
+            
+        # Update the position fields for closing
+        position.status = PositionStatus.CLOSED
+        position.exit_price = exit_price
+        position.realized_pnl = realized_pnl
+        position.closed_at = datetime.now(tz=ZoneInfo("UTC"))
+        
+        # Save the updated position
+        return await self.update(position)
     
     async def get_positions_by_symbol(self, symbol: str) -> list[Position]:
         result = await self.session.execute(

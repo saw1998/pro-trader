@@ -1,11 +1,32 @@
+"""
+FastAPI Dependencies Module
+
+This module provides dependency injection functions for FastAPI routes.
+Dependencies handle common operations like database session management,
+repository instantiation, and user authentication.
+
+Key Features:
+- Repository pattern implementation with automatic session management
+- JWT-based authentication with Redis session validation
+- Type-safe dependency injection for better IDE support and runtime safety
+"""
+
 from typing import Optional
 from uuid import UUID
 from fastapi import Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import UnauthorizedException
-from app.db import get_db, RedisClient, get_redis
-from app.repositories import UserRepository, PositionRepository, TradeRepository
+# Import exception classes for authentication errors
+from app.core.exceptions import UnauthorizedException
+
+# Import database connection utilities
+from app.db.database import get_db
+from app.db.redis import RedisClient, get_redis
+
+# Import repository classes for data access layer
+from app.repositories.user_repository import UserRepository
+from app.repositories.position_repository import PositionRepository  
+from app.repositories.trade_repository import TradeRepository
 
 async def get_user_repo(db : AsyncSession = Depends(get_db)) -> UserRepository:
     return UserRepository(db)
