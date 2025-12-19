@@ -41,7 +41,7 @@ class RedisClient:
             return await self.client.get(key)
         return None
     
-    async def set(self, key: str, value: str, ttl: Optional[int] = None) -> bool:
+    async def set_value(self, key: str, value: str, ttl: Optional[int] = None) -> bool:
         '''set string value with optional ttl'''
         if ttl:
             return await self.client.setex(key, ttl, value)
@@ -145,7 +145,7 @@ class RedisClient:
     async def set_price(self, symbol: str, price: float, ttl:int = 60):
         '''set current price for symbol'''
         key = f"price:{symbol}"
-        await self.set(key, str(price), ttl)
+        await self.set_value(key, str(price), ttl)
 
     async def get_price(self, symbol: str) -> Optional[float]:
         '''get current price for symbol'''

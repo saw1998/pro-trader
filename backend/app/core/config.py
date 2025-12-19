@@ -20,11 +20,11 @@ class Settings(BaseSettings):
     API_V1_PREFIX : str = "api/v1"
 
     # PostgresSQL
-    POSTGRES_HOST = "localhost"
-    POSTGRES_PORT = 5432
-    POSTGRES_USER : str = "postgres"
-    POSTGRES_PASSWORD : str = ""
-    POSTGRES_DB : str = "trading"
+    # POSTGRES_HOST = "localhost"
+    # POSTGRES_PORT = 5432
+    # POSTGRES_USER : str = "postgres"
+    # POSTGRES_PASSWORD : str = ""
+    # POSTGRES_DB : str = "trading"
 
     # Connection pool settings
     DB_POOL_SIZE : int = 20

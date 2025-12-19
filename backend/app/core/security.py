@@ -2,7 +2,7 @@ import secrets
 from passlib.context import CryptContext
 
 # Password hashing
-pwd_context = CryptContext(schemes=['bcrypt'], depricated="auto")
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 
 
 class SecurityService:
