@@ -10,12 +10,14 @@ import asyncio
 from datetime import datetime
 import json
 import logging
+import ssl
 from typing import Optional
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
 # Updated imports for websockets v12.0+
 # In v12+, the asyncio client is in websockets.asyncio.client
+import certifi
 from websockets.asyncio.client import connect, ClientConnection
 from websockets.exceptions import ConnectionClosed, ConnectionClosedError
 
@@ -26,8 +28,12 @@ from app.websocket.manager import ws_manager
 from app.db.database import db
 
 # Configure logger for this module
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+ssl_context = ssl.create_default_context(
+    cafile=certifi.where()
+)
 
 class BinanceConsumer:
     """
@@ -104,7 +110,8 @@ class BinanceConsumer:
                 self.ws_url,
                 ping_interval=20,
                 ping_timeout=10,
-                close_timeout=10
+                close_timeout=10,
+                ssl=ssl_context
             )
             
             # Mark consumer as running
@@ -157,7 +164,7 @@ class BinanceConsumer:
         
         # Build stream names - using ticker stream for 24hr price data
         # Format: symbol@ticker (e.g., "btcusdt@ticker")
-        streams = [f"{s.lower()}@ticker" for s in new_symbols]
+        streams = [f"{s.lower()}@aggTrade" for s in new_symbols]
         
         # Construct Binance subscription message
         # id: Unique identifier for tracking responses (using UTC timestamp)
@@ -166,13 +173,14 @@ class BinanceConsumer:
             "params": streams,
             "id": int(datetime.now(tz=ZoneInfo("UTC")).timestamp())
         }
+        logger.info(f"sending message to binance : {msg}")
         
         # Send subscription request
         await self.ws.send(json.dumps(msg))
         
         # Track newly subscribed symbols
         self.subscribed_symbols.update(new_symbols)
-        logger.info(f"Subscribed to symbols: {new_symbols}")
+        logger.info(f"Subscribed to symbols: {self.subscribed_symbols}")
 
     async def unsubscribe(self, symbols: list[str]) -> None:
         """
@@ -232,11 +240,14 @@ class BinanceConsumer:
         """
         try:
             data = json.loads(message)
+            logger.info(f"data from binance: {data}")
             
             # Skip subscription confirmation messages (have "result" key)
             # and messages without event type ("e" key)
             if "result" in data or "e" not in data:
                 return
+
+            #TODone update from here
             
             # Process 24hr ticker events
             if data["e"] == "24hrTicker":
@@ -251,6 +262,13 @@ class BinanceConsumer:
                     "change_24h": float(data.get("P", 0)),  # 24hr price change %
                     "high_24h": float(data.get("h", 0)),    # 24hr high price
                     "low_24h": float(data.get("l", 0))      # 24hr low price
+                }
+            elif data["e"] == "aggTrade":
+                symbol = data["s"].upper()
+
+                self.price_buffer[symbol] = {
+                    "price" : float(data["p"]),
+                    "volume" : float(data["q"])
                 }
                 
         except json.JSONDecodeError as e:
@@ -297,6 +315,7 @@ class BinanceConsumer:
                     subscribers = ws_manager.get_symbol_subscribers(symbol)
                     affected_users.update(subscribers)
 
+                # TODO: why binance consumer worry what to broadcast to the user
                 # Create broadcast tasks for each symbol's price update
                 broadcast_tasks = [
                     ws_manager.broadcast_price(symbol, data)
@@ -369,6 +388,7 @@ class BinanceConsumer:
         maximum reconnection attempts are exceeded.
         """
         logger.info("Starting Binance WebSocket listener")
+        print("Starting Binance WebSocket listener")
         
         while self.running:
             try:

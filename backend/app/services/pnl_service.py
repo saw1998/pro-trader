@@ -20,7 +20,7 @@ class PnLService:
 
         positions = await self.position_repo.get_user_open_positions(user_id)
 
-        if not positions:
+        if not positions or len(positions) == 0:
             return PortfolioResponse(
                 positions=[],
                 total_invested=Decimal("0"),

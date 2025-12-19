@@ -14,6 +14,9 @@ from app.db.database import db
 
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
     session_data = await redis_client.get_session(session_id)
+    print("#######################")
+    print(session_data)
+    print("#######################")
     if not session_data:
         await websocket.close(code=4001, reason="Invalid session")
         return

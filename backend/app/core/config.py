@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import List
 from pydantic_settings import BaseSettings
 
-class Settings(BaseSettings):
+class Settings:
     '''Application settings loaded from environment variables'''
 
     # Application

@@ -13,7 +13,7 @@ future versions (v2, v3, etc.) to coexist with the current implementation.
 from fastapi import APIRouter
 
 # Import all API route modules
-from app.api import auth, positions
+from app.api import auth, portfolio, positions, trades
 
 
 # Create the main API router with version prefix
@@ -27,3 +27,8 @@ router.include_router(auth.router)
 # Include position management routes  
 # Handles: /api/v1/positions/, /api/v1/positions/{id}, /api/v1/positions/{id}/close
 router.include_router(positions.router)
+
+router.include_router(trades.router)
+
+router.include_router(portfolio.router)
+

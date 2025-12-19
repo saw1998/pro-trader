@@ -25,7 +25,9 @@ Architecture:
 
 import asyncio
 from contextlib import asynccontextmanager
+import ssl
 
+import certifi
 from fastapi import FastAPI, WebSocket  # Added WebSocket import
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import router
@@ -72,15 +74,16 @@ async def lifespan(app: FastAPI):
     await db.create_tables()
     print("✅ Database tables ready")
 
+    # Subscribe to initial trading pairs for price data
+    # These are the most popular pairs - more can be added dynamically
+    await binance_consumer.subscribe(["BTCUSDT"])
+    print("✅ Subscribed to initial trading pairs")
+
     # Start background task for Binance WebSocket price streaming
     # This runs continuously to fetch real-time market data
     asyncio.create_task(binance_consumer.listen())
     print("✅ Binance WebSocket consumer started")
     
-    # Subscribe to initial trading pairs for price data
-    # These are the most popular pairs - more can be added dynamically
-    await binance_consumer.subscribe(["BTCUSDT", "ETHUSDT", "BNBUSDT"])
-    print("✅ Subscribed to initial trading pairs")
     
     print("🎯 Application startup complete!")
 

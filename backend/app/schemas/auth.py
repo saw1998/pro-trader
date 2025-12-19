@@ -9,7 +9,7 @@ class RegisterRequest(BaseModel):
 
     email: EmailStr
     username : str = Field(..., min_length=3, max_length=50)
-    password : str = Field(..., min_length=8, max_length=100)
+    password : str = Field(..., min_length=3, max_length=100)
 
     @field_validator("username")
     def validate_username(cls, v):
@@ -17,15 +17,15 @@ class RegisterRequest(BaseModel):
             raise ValueError("Username can only contain letters, numbers and underscore")
         return v.lower()
 
-    @field_validator("password")
-    def validate_password(cls, v):
-        if not re.search(r"[A-Z]", v):
-            raise ValueError("Password must contains at least one uppercase letter")
-        if not re.search(r"[a-z]", v):
-            raise ValueError("Password must contains at least one lowercase letter")
-        if not re.search(r"\d", v):
-            raise ValueError("Password must contains at least one digit")
-        return v
+    # @field_validator("password")
+    # def validate_password(cls, v):
+    #     if not re.search(r"[A-Z]", v):
+    #         raise ValueError("Password must contains at least one uppercase letter")
+    #     if not re.search(r"[a-z]", v):
+    #         raise ValueError("Password must contains at least one lowercase letter")
+    #     if not re.search(r"\d", v):
+    #         raise ValueError("Password must contains at least one digit")
+    #     return v
 
 
 class LoginRequest(BaseModel):
