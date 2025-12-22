@@ -1,0 +1,41 @@
+/* src/components/Portfolio/Portfolio.css */
+.portfolio-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.portfolio-stat-card {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.portfolio-stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.portfolio-stat-label {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.portfolio-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.portfolio-stat-subvalue {
+  font-size: 14px;
+}
+
+.portfolio-stat-icon {
+  width: 32px;
+  height: 32px;
+}

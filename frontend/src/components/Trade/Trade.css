@@ -1,0 +1,171 @@
+/* src/components/Trade/Trade.css */
+.trade-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trade-form-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.trade-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.trade-type-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.trade-type-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.trade-type-btn.active.long {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.trade-type-btn.active.short {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.trade-summary {
+  background-color: var(--color-bg-tertiary);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.trade-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.trade-summary-label {
+  color: var(--color-text-secondary);
+}
+
+.trade-summary-value {
+  font-weight: 700;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: 16px;
+  height: 16px;
+}
+
+.quick-trade {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 8px;
+}
+
+.quick-trade-info {
+  flex: 1;
+}
+
+.quick-trade-symbol {
+  font-weight: 700;
+}
+
+.quick-trade-price {
+  font-size: 20px;
+  font-family: var(--font-mono);
+}
+
+.quick-trade-input {
+  width: 100px;
+}
+
+.quick-trade-select {
+  width: 100px;
+}
+
+.quick-trade-total {
+  text-align: right;
+  min-width: 100px;
+}
+
+.quick-trade-total-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.quick-trade-total-value {
+  font-weight: 700;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--color-bg-secondary);
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.modal-close:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
